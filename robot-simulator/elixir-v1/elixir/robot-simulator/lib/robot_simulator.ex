@@ -3,6 +3,10 @@ defmodule RobotSimulator do
   defstruct direction: :north,
             position: {0, 0}
 
+  defguard is_direction(direction) when direction in [:north,:east,:south,:west]
+
+  defguard is_position(x, y) when is_integer(x) and is_integer(y)
+
   @doc """
   Create a Robot Simulator given an initial direction and position.
 
@@ -10,14 +14,11 @@ defmodule RobotSimulator do
   """
   @spec create(direction :: atom, position :: {integer, integer}) :: any
   def create(direction \\ :north, position \\ {0, 0})
-  def create(direction, _position) when direction not in [:north,:east,:south,:west] do
-    {:error, "invalid direction"}
-  end
   def create(direction, position ) do
     case {direction, position} do
-      {direction, _} when direction not in [:north,:east,:south,:west]
+      {direction, _} when not is_direction(direction)
         -> {:error, "invalid direction"}
-      {_, {x, y}} when is_integer(x) and is_integer(y)
+      {direction, {x, y}} when is_position(x, y)
         -> %__MODULE__{direction: direction, position: position}
       _ -> {:error, "invalid position"}
     end
@@ -29,9 +30,7 @@ defmodule RobotSimulator do
   Valid instructions are: "R" (turn right), "L", (turn left), and "A" (advance)
   """
   @spec simulate(robot :: any, instructions :: String.t()) :: any
-  def simulate(robot, "") do
-    robot
-  end
+  def simulate(robot, ""), do: robot
   def simulate(robot, <<command_token::utf8, rest::bytes>>) do
     with {:ok, command_atom} <- interpret_command(command_token) do
       robot
