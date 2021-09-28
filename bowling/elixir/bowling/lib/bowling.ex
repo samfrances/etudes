@@ -44,7 +44,9 @@ end
 
 defmodule Bowling.Spare do
 
-  defstruct []
+  defstruct [
+    next_roll: nil
+  ]
 
   def new() do
     %__MODULE__{}
@@ -54,7 +56,10 @@ end
 
 defmodule Bowling.Strike do
 
-  defstruct []
+  defstruct [
+    first_scoring_roll: nil,
+    second_scoring_roll: nil
+  ]
 
   def new() do
     %__MODULE__{}
@@ -105,12 +110,18 @@ defimpl Bowling.Frame, for: Bowling.Spare do
 
   def status(_frame), do: :spare
 
+  def roll(frame = %Bowling.Spare{next_roll: nil}, n) do
+    %{frame | next_roll: n}
+  end
   def roll(frame, _n) do
     frame
   end
 
-  def score(_frame) do
-    0
+  def score(%Bowling.Spare{next_roll: nil}) do
+    nil
+  end
+  def score(%Bowling.Spare{next_roll: n}) do
+    10 + n
   end
 
 end
@@ -119,12 +130,21 @@ defimpl Bowling.Frame, for: Bowling.Strike do
 
   def status(_frame), do: :strike
 
+  def roll(frame = %Bowling.Strike{first_scoring_roll: nil}, n) do
+    %{ frame | first_scoring_roll: n }
+  end
+  def roll(frame = %Bowling.Strike{second_scoring_roll: nil}, n) do
+    %{ frame | second_scoring_roll: n }
+  end
   def roll(frame, _n) do
     frame
   end
 
-  def score(_frame) do
-    0
+  def score(%Bowling.Strike{first_scoring_roll: n, second_scoring_roll: m}) when is_nil(n) or is_nil(m) do
+    nil
+  end
+  def score(%Bowling.Strike{first_scoring_roll: n, second_scoring_roll: m}) do
+    n + m + 10
   end
 
 end
