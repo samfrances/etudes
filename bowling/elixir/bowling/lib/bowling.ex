@@ -203,10 +203,16 @@ defimpl Bowling.Frame, for: Bowling.Spare do
     is_integer(frame.next_roll)
   end
 
-  def roll(frame = %Bowling.Spare{next_roll: nil}, n) do
+  def roll(frame = %Bowling.Spare{}, n) do
+    with {:ok, _pins} <- Bowling.Pins.new() |> Bowling.Pins.roll(n) do
+      update_score(frame, n)
+    end
+  end
+
+  defp update_score(frame = %Bowling.Spare{next_roll: nil}, n) do
     %{frame | next_roll: n}
   end
-  def roll(frame, _n) do
+  defp update_score(frame, _n) do
     frame
   end
 
