@@ -82,6 +82,24 @@ defmodule Bowling do
   end
 end
 
+defmodule Bowling.Pins do
+  defstruct remaining: 10
+
+  @spec new :: %Bowling.Pins{remaining: 10}
+  def new() do
+    %__MODULE__{}
+  end
+
+  def roll(pins = %__MODULE__{remaining: remaining}, n) do
+    cond do
+      n > remaining -> Bowling.Errors.pin_count()
+      n == remaining -> {:ok, new()}
+      n < remaining -> {:ok, %{pins | remaining: remaining - n}}
+    end
+  end
+end
+
+
 defmodule Bowling.OpenFrame do
 
   defstruct [
@@ -112,7 +130,8 @@ defmodule Bowling.Strike do
 
   defstruct [
     first_scoring_roll: nil,
-    second_scoring_roll: nil
+    second_scoring_roll: nil,
+    pins: Bowling.Pins.new(),
   ]
 
   def new() do
@@ -210,19 +229,19 @@ defimpl Bowling.Frame, for: Bowling.Strike do
     is_integer(frame.first_scoring_roll) and is_integer(frame.second_scoring_roll)
   end
 
-  def roll(_frame, n) when n > 10 do
-    Bowling.Errors.pin_count()
+  def roll(frame = %Bowling.Strike{}, n) do
+    with {:ok, pins} <- Bowling.Pins.roll(frame.pins, n) do
+      %{ update_score(frame, n) | pins: pins }
+    end
   end
-  def roll(%Bowling.Strike{first_scoring_roll: n}, m) when n < 10 and n + m > 10 do
-    Bowling.Errors.pin_count()
-  end
-  def roll(frame = %Bowling.Strike{first_scoring_roll: nil}, n) do
+
+  defp update_score(frame = %Bowling.Strike{first_scoring_roll: nil}, n) do
     %{ frame | first_scoring_roll: n }
   end
-  def roll(frame = %Bowling.Strike{second_scoring_roll: nil}, n) do
+  defp update_score(frame = %Bowling.Strike{second_scoring_roll: nil}, n) do
     %{ frame | second_scoring_roll: n }
   end
-  def roll(frame, _n) do
+  defp update_score(frame, _n) do
     frame
   end
 
