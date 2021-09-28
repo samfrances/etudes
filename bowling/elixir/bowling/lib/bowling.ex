@@ -71,13 +71,21 @@ defprotocol Bowling.Frame do
   def status(frame)
   def roll(frame, n)
   def score(frame)
-  # def finished(frame)
-  # def fully_scored(frame)
+  def finished?(frame)
+  def fully_scored?(frame)
 end
 
 defimpl Bowling.Frame, for: Bowling.OpenFrame do
 
   def status(_frame), do: :open
+
+  def finished?(%Bowling.OpenFrame{rolls: rolls}) do
+    rolls == 2
+  end
+
+  def fully_scored?(frame) do
+    finished?(frame)
+  end
 
   def score(%Bowling.OpenFrame{rolls: rolls}) when rolls < 2 do
     nil
@@ -110,6 +118,12 @@ defimpl Bowling.Frame, for: Bowling.Spare do
 
   def status(_frame), do: :spare
 
+  def finished?(_frame), do: true
+
+  def fully_scored?(frame) do
+    is_integer(frame.next_roll)
+  end
+
   def roll(frame = %Bowling.Spare{next_roll: nil}, n) do
     %{frame | next_roll: n}
   end
@@ -129,6 +143,12 @@ end
 defimpl Bowling.Frame, for: Bowling.Strike do
 
   def status(_frame), do: :strike
+
+  def finished?(_frame), do: true
+
+  def fully_scored?(frame) do
+    is_integer(frame.first_scoring_roll) and is_integer(frame.second_scoring_roll)
+  end
 
   def roll(frame = %Bowling.Strike{first_scoring_roll: nil}, n) do
     %{ frame | first_scoring_roll: n }

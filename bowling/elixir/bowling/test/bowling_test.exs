@@ -395,4 +395,46 @@ defmodule FrameTest do
     ) == roll1 + roll2 + 10
   end
 
+  test "strikes are always finished" do
+    assert Bowling.Strike.new() |> Bowling.Frame.finished?() == true
+  end
+
+  test "spares are always finished" do
+    assert Bowling.Spare.new() |> Bowling.Frame.finished?() == true
+  end
+
+  test "open frames are finished after two rolls" do
+    zero_rolls = Bowling.OpenFrame.new()
+    assert Bowling.Frame.finished?(zero_rolls) == false
+    one_roll = Bowling.Frame.roll(zero_rolls, 4)
+    assert Bowling.Frame.finished?(one_roll) == false
+    two_rolls = Bowling.Frame.roll(one_roll, 2)
+    assert Bowling.Frame.finished?(two_rolls)
+  end
+
+  test "open frames are fully scored after two rolls" do
+    zero_rolls = Bowling.OpenFrame.new()
+    assert Bowling.Frame.fully_scored?(zero_rolls) == false
+    one_roll = Bowling.Frame.roll(zero_rolls, 4)
+    assert Bowling.Frame.fully_scored?(one_roll) == false
+    two_rolls = Bowling.Frame.roll(one_roll, 2)
+    assert Bowling.Frame.fully_scored?(two_rolls)
+  end
+
+  test "spares are fully scored after one extra roll" do
+    no_extra_roll = Bowling.Spare.new()
+    assert not Bowling.Frame.fully_scored?(no_extra_roll)
+    one_extra_roll = Bowling.Frame.roll(no_extra_roll, 2)
+    assert Bowling.Frame.fully_scored?(one_extra_roll)
+  end
+
+  test "strikes are fully scored after two extra rolls" do
+    no_extra_roll = Bowling.Strike.new()
+    assert not Bowling.Frame.fully_scored?(no_extra_roll)
+    one_extra_roll = Bowling.Frame.roll(no_extra_roll, 2)
+    assert not Bowling.Frame.fully_scored?(one_extra_roll)
+    two_extra_rolls = Bowling.Frame.roll(one_extra_roll, 3)
+    assert Bowling.Frame.fully_scored?(two_extra_rolls)
+  end
+
 end
