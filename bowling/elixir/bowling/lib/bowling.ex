@@ -66,11 +66,20 @@ defprotocol Bowling.Frame do
   def status(frame)
   def roll(frame, n)
   def score(frame)
+  # def finished(frame)
+  # def fully_scored(frame)
 end
 
 defimpl Bowling.Frame, for: Bowling.OpenFrame do
 
   def status(_frame), do: :open
+
+  def score(%Bowling.OpenFrame{rolls: rolls}) when rolls < 2 do
+    nil
+  end
+  def score(%Bowling.OpenFrame{first_roll: x, second_roll: y}) do
+    x + y
+  end
 
   def roll(%Bowling.OpenFrame{rolls: 0}, 10) do
     Bowling.Strike.new()
@@ -89,10 +98,6 @@ defimpl Bowling.Frame, for: Bowling.OpenFrame do
   end
 
   def roll(frame = %Bowling.OpenFrame{}, _n), do: frame
-
-  def score(%Bowling.OpenFrame{first_roll: x, second_roll: y}) do
-    x + y
-  end
 
 end
 
