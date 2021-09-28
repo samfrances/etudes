@@ -152,12 +152,16 @@ defimpl Bowling.Frame, for: Bowling.OpenFrame do
 
   def status(_frame), do: :open
 
-  def finished?(%Bowling.OpenFrame{rolls: rolls}) do
-    rolls == 2
+  defguard is_finished?(frame) when frame.rolls == 2
+
+  def finished?(frame = %Bowling.OpenFrame{}) do
+    is_finished?(frame)
   end
 
+  defguard is_fully_scored?(frame) when is_finished?(frame)
+
   def fully_scored?(frame) do
-    finished?(frame)
+    is_fully_scored?(frame)
   end
 
   def score(%Bowling.OpenFrame{rolls: rolls}) when rolls < 2 do
@@ -167,29 +171,25 @@ defimpl Bowling.Frame, for: Bowling.OpenFrame do
     x + y
   end
 
+  def roll(frame, _n) when is_fully_scored?(frame), do: frame
   def roll(%Bowling.OpenFrame{rolls: 0}, 10) do
     Bowling.Strike.new()
   end
-
   def roll(_frame, n) when n > 10 do
     Bowling.Errors.pin_count()
   end
   def roll(frame = %Bowling.OpenFrame{rolls: 0}, n) do
     %{ frame | first_roll: n, rolls: 1 }
   end
-
   def roll(%Bowling.OpenFrame{rolls: 1, first_roll: f}, n) when f + n == 10 do
     Bowling.Spare.new()
   end
   def roll(%Bowling.OpenFrame{rolls: 1, first_roll: f}, n) when f + n > 10 do
     Bowling.Errors.pin_count()
   end
-
   def roll(frame = %Bowling.OpenFrame{rolls: 1}, n)  do
     %{ frame | second_roll: n, rolls: 2 }
   end
-
-  def roll(frame = %Bowling.OpenFrame{}, _n), do: frame
 
 end
 
@@ -199,10 +199,13 @@ defimpl Bowling.Frame, for: Bowling.Spare do
 
   def finished?(_frame), do: true
 
+  defguard is_fully_scored?(frame) when is_integer(frame.next_roll)
+
   def fully_scored?(frame) do
-    is_integer(frame.next_roll)
+    is_fully_scored?(frame)
   end
 
+  def roll(frame, _n) when is_fully_scored?(frame), do: frame
   def roll(frame = %Bowling.Spare{}, n) do
     with {:ok, _pins} <- Bowling.Pins.new() |> Bowling.Pins.roll(n) do
       update_score(frame, n)
@@ -231,10 +234,14 @@ defimpl Bowling.Frame, for: Bowling.Strike do
 
   def finished?(_frame), do: true
 
+  defguard is_fully_scored?(frame)
+    when is_integer(frame.first_scoring_roll) and is_integer(frame.second_scoring_roll)
+
   def fully_scored?(frame) do
-    is_integer(frame.first_scoring_roll) and is_integer(frame.second_scoring_roll)
+    is_fully_scored?(frame)
   end
 
+  def roll(frame, _n) when is_fully_scored?(frame), do: frame
   def roll(frame = %Bowling.Strike{}, n) do
     with {:ok, pins} <- Bowling.Pins.roll(frame.pins, n) do
       %{ update_score(frame, n) | pins: pins }
@@ -246,9 +253,6 @@ defimpl Bowling.Frame, for: Bowling.Strike do
   end
   defp update_score(frame = %Bowling.Strike{second_scoring_roll: nil}, n) do
     %{ frame | second_scoring_roll: n }
-  end
-  defp update_score(frame, _n) do
-    frame
   end
 
   def score(%Bowling.Strike{first_scoring_roll: n, second_scoring_roll: m}) when is_nil(n) or is_nil(m) do
