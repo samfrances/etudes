@@ -25,7 +25,7 @@ defmodule Bowling do
     {:error, "Negative roll is invalid"}
   end
   def roll(game, roll) do
-    with :ok <- assert_game_ongoing(game, "Cannot roll after game is over"),
+    with :ok <- (if game_over?(game), do: Bowling.Errors.game_over(), else: :ok),
          {:ok, with_updated_scores} <- update_frames(game.frames, roll),
          next_frames <- maybe_add_next_frame(with_updated_scores)
     do
@@ -59,14 +59,6 @@ defmodule Bowling do
     end
   end
 
-  defp assert_game_ongoing(game, msg) do
-    if game_over?(game) do
-      {:error, msg}
-    else
-      :ok
-    end
-  end
-
   defp game_over?(%__MODULE__{frames: frames}) do
     length(frames) == 10 and Enum.all?(frames, &Bowling.Frame.fully_scored?/1)
   end
@@ -79,7 +71,7 @@ defmodule Bowling do
   @spec score(any) :: {:ok, integer} | {:error, String.t()}
   def score(game) do
     if not game_over?(game) do
-      {:error, "Score cannot be taken until the end of the game"}
+      Bowling.Errors.score_not_ready()
     else
       score =
         game.frames
@@ -161,7 +153,7 @@ defimpl Bowling.Frame, for: Bowling.OpenFrame do
   end
 
   def roll(_frame, n) when n > 10 do
-    {:error, "Pin count exceeds pins on the lane"}
+    Bowling.Errors.pin_count()
   end
   def roll(frame = %Bowling.OpenFrame{rolls: 0}, n) do
     %{ frame | first_roll: n, rolls: 1 }
@@ -171,7 +163,7 @@ defimpl Bowling.Frame, for: Bowling.OpenFrame do
     Bowling.Spare.new()
   end
   def roll(%Bowling.OpenFrame{rolls: 1, first_roll: f}, n) when f + n > 10 do
-    {:error, "Pin count exceeds pins on the lane"}
+    Bowling.Errors.pin_count()
   end
 
   def roll(frame = %Bowling.OpenFrame{rolls: 1}, n)  do
@@ -219,10 +211,10 @@ defimpl Bowling.Frame, for: Bowling.Strike do
   end
 
   def roll(_frame, n) when n > 10 do
-    {:error, "Pin count exceeds pins on the lane"}
+    Bowling.Errors.pin_count()
   end
   def roll(%Bowling.Strike{first_scoring_roll: n}, m) when n < 10 and n + m > 10 do
-    {:error, "Pin count exceeds pins on the lane"}
+    Bowling.Errors.pin_count()
   end
   def roll(frame = %Bowling.Strike{first_scoring_roll: nil}, n) do
     %{ frame | first_scoring_roll: n }
@@ -239,6 +231,22 @@ defimpl Bowling.Frame, for: Bowling.Strike do
   end
   def score(%Bowling.Strike{first_scoring_roll: n, second_scoring_roll: m}) do
     n + m + 10
+  end
+
+end
+
+defmodule Bowling.Errors do
+
+  def pin_count() do
+    {:error, "Pin count exceeds pins on the lane"}
+  end
+
+  def score_not_ready() do
+    {:error, "Score cannot be taken until the end of the game"}
+  end
+
+  def game_over() do
+    {:error, "Cannot roll after game is over"}
   end
 
 end
