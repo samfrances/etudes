@@ -27,3 +27,33 @@ defmodule Bowling do
   def score(game) do
   end
 end
+
+defmodule Bowling.Frame do
+
+  defstruct [
+    primary_rolls: []
+  ]
+
+  def new() do
+    %__MODULE__{}
+  end
+
+  def status(%__MODULE__{primary_rolls: rolls}) do
+    cond do
+      Enum.sum(rolls) < 10 -> :open
+      length(rolls) == 2 -> :spare
+      length(rolls) == 1 -> :strike
+    end
+  end
+
+  def roll(frame, n) do
+    cond do
+      status(frame) in [:strike, :spare] -> frame
+      true -> %{
+        frame |
+        primary_rolls: [n|frame.primary_rolls]
+      }
+    end
+  end
+
+end

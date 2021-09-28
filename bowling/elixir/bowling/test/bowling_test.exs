@@ -8,6 +8,7 @@ defmodule BowlingTest do
     end)
   end
 
+  @tag :pending
   test "should be able to score a game with all zeros" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -239,4 +240,56 @@ defmodule BowlingTest do
     game = roll_reduce(game, rolls)
     assert Bowling.roll(game, 2) == {:error, "Cannot roll after game is over"}
   end
+end
+
+defmodule FrameTest do
+  use ExUnit.Case
+
+  test "starts as open frame" do
+    assert Bowling.Frame.new() |> Bowling.Frame.status() == :open
+  end
+
+  test "open frame" do
+    frame_stage_1 = Bowling.Frame.new() |> Bowling.Frame.roll(3)
+    assert Bowling.Frame.status(frame_stage_1) == :open
+    frame_stage_2 = frame_stage_1 |> Bowling.Frame.roll(3)
+    assert Bowling.Frame.status(frame_stage_2) == :open
+  end
+
+  test "status after rolling a spare" do
+    frame =
+      Bowling.Frame.new()
+      |> Bowling.Frame.roll(4)
+      |> Bowling.Frame.roll(6)
+
+    assert Bowling.Frame.status(frame) == :spare
+  end
+
+  test "spare status persists" do
+    frame =
+      Bowling.Frame.new()
+      |> Bowling.Frame.roll(4)
+      |> Bowling.Frame.roll(6)
+      |> Bowling.Frame.roll(1)
+
+    assert Bowling.Frame.status(frame) == :spare
+  end
+
+  test "status after rolling a strike" do
+    frame =
+      Bowling.Frame.new()
+      |> Bowling.Frame.roll(10)
+
+    assert Bowling.Frame.status(frame) == :strike
+  end
+
+  test "strike status persists" do
+    frame =
+      Bowling.Frame.new()
+      |> Bowling.Frame.roll(10)
+      |> Bowling.Frame.roll(4)
+
+    assert Bowling.Frame.status(frame) == :strike
+  end
+
 end
