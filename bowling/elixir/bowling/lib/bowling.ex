@@ -21,17 +21,31 @@ defmodule Bowling do
   """
 
   @spec roll(any, integer) :: {:ok, any} | {:error, String.t()}
+  def roll(_game, n) when n < 0 do
+    {:error, "Negative roll is invalid"}
+  end
   def roll(game, roll) do
-    updated_frames =
-      Enum.map(game.frames, fn frame -> Bowling.Frame.roll(frame, roll) end)
-      |> then(fn frames ->
-        if length(frames) < 10 and Enum.all?(frames, &Bowling.Frame.finished?/1) do
-          [Bowling.OpenFrame.new() | frames]
-        else
-          frames
+    if game_over?(game) do
+      {:error, "Cannot roll after game is over"}
+    else
+      updated_frames =
+        Enum.map(game.frames, fn frame -> Bowling.Frame.roll(frame, roll) end)
+
+      error = updated_frames |> Enum.find(fn frame ->
+        case frame do
+          {:error, msg} -> {:error, msg}
+          _ -> nil
         end
       end)
-    {:ok, %{ game | frames: updated_frames}}
+
+      cond do
+        not is_nil(error) -> error
+        length(updated_frames) < 10 and Enum.all?(updated_frames, &Bowling.Frame.finished?/1)
+          -> {:ok, %{game | frames: [Bowling.OpenFrame.new() | updated_frames]}}
+        true -> {:ok, %{game | frames: updated_frames}}
+      end
+    end
+
   end
 
   defp game_over?(%__MODULE__{frames: frames}) do
@@ -45,11 +59,15 @@ defmodule Bowling do
 
   @spec score(any) :: {:ok, integer} | {:error, String.t()}
   def score(game) do
-    score =
-      game.frames
-      |> Enum.map(&Bowling.Frame.score/1)
-      |> Enum.sum()
-    {:ok, score}
+    if not game_over?(game) do
+      {:error, "Score cannot be taken until the end of the game"}
+    else
+      score =
+        game.frames
+        |> Enum.map(&Bowling.Frame.score/1)
+        |> Enum.sum()
+      {:ok, score}
+    end
   end
 end
 
@@ -123,12 +141,18 @@ defimpl Bowling.Frame, for: Bowling.OpenFrame do
     Bowling.Strike.new()
   end
 
+  def roll(_frame, n) when n > 10 do
+    {:error, "Pin count exceeds pins on the lane"}
+  end
   def roll(frame = %Bowling.OpenFrame{rolls: 0}, n) do
     %{ frame | first_roll: n, rolls: 1 }
   end
 
   def roll(%Bowling.OpenFrame{rolls: 1, first_roll: f}, n) when f + n == 10 do
     Bowling.Spare.new()
+  end
+  def roll(%Bowling.OpenFrame{rolls: 1, first_roll: f}, n) when f + n > 10 do
+    {:error, "Pin count exceeds pins on the lane"}
   end
 
   def roll(frame = %Bowling.OpenFrame{rolls: 1}, n)  do

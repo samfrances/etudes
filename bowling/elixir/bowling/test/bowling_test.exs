@@ -106,26 +106,22 @@ defmodule BowlingTest do
     assert Bowling.score(game) == {:ok, 300}
   end
 
-  @tag :pending
   test "rolls cannot score negative points" do
     game = Bowling.start()
     assert Bowling.roll(game, -1) == {:error, "Negative roll is invalid"}
   end
 
-  @tag :pending
   test "a roll cannot score more than 10 points" do
     game = Bowling.start()
     assert Bowling.roll(game, 11) == {:error, "Pin count exceeds pins on the lane"}
   end
 
-  @tag :pending
   test "two rolls in a frame cannot score more than 10 points" do
     game = Bowling.start()
     {:ok, game} = Bowling.roll(game, 5)
     assert Bowling.roll(game, 6) == {:error, "Pin count exceeds pins on the lane"}
   end
 
-  @tag :pending
   test "bonus roll after a strike in the last frame cannot score more than 10 points" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
@@ -165,13 +161,11 @@ defmodule BowlingTest do
     assert Bowling.roll(game, 11) == {:error, "Pin count exceeds pins on the lane"}
   end
 
-  @tag :pending
   test "an unstarted game cannot be scored" do
     game = Bowling.start()
     assert Bowling.score(game) == {:error, "Score cannot be taken until the end of the game"}
   end
 
-  @tag :pending
   test "an incomplete game cannot be scored" do
     game = Bowling.start()
     rolls = [0, 0]
@@ -179,7 +173,6 @@ defmodule BowlingTest do
     assert Bowling.score(game) == {:error, "Score cannot be taken until the end of the game"}
   end
 
-  @tag :pending
   test "cannot roll if game already has ten frames" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -187,7 +180,6 @@ defmodule BowlingTest do
     assert Bowling.roll(game, 0) == {:error, "Cannot roll after game is over"}
   end
 
-  @tag :pending
   test "bonus rolls for a strike in the last frame must be rolled before score can be calculated" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
@@ -195,7 +187,6 @@ defmodule BowlingTest do
     assert Bowling.score(game) == {:error, "Score cannot be taken until the end of the game"}
   end
 
-  @tag :pending
   test "both bonus rolls for a strike in the last frame must be rolled before score can be calculated" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10]
@@ -203,7 +194,6 @@ defmodule BowlingTest do
     assert Bowling.score(game) == {:error, "Score cannot be taken until the end of the game"}
   end
 
-  @tag :pending
   test "bonus roll for a spare in the last frame must be rolled before score can be calculated" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 3]
@@ -211,7 +201,6 @@ defmodule BowlingTest do
     assert Bowling.score(game) == {:error, "Score cannot be taken until the end of the game"}
   end
 
-  @tag :pending
   test "cannot roll after bonus roll for spare" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 3, 2]
@@ -219,7 +208,6 @@ defmodule BowlingTest do
     assert Bowling.roll(game, 2) == {:error, "Cannot roll after game is over"}
   end
 
-  @tag :pending
   test "cannot roll after bonus roll for strike" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 3, 2]
@@ -320,6 +308,19 @@ defmodule FrameTest do
       |> Bowling.Frame.score()
     ) == roll1 + roll2
 
+  end
+
+  test "an open frame's rolls may not exceed 10" do
+    assert (
+      Bowling.OpenFrame.new()
+      |> Bowling.Frame.roll(11)
+    ) == {:error, "Pin count exceeds pins on the lane"}
+
+    assert (
+      Bowling.OpenFrame.new()
+      |> Bowling.Frame.roll(8)
+      |> Bowling.Frame.roll(3)
+    ) == {:error, "Pin count exceeds pins on the lane"}
   end
 
   test "scoring a new spare frame" do
