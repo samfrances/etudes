@@ -246,11 +246,11 @@ defmodule FrameTest do
   use ExUnit.Case
 
   test "starts as open frame" do
-    assert Bowling.Frame.new() |> Bowling.Frame.status() == :open
+    assert Bowling.OpenFrame.new() |> Bowling.Frame.status() == :open
   end
 
   test "open frame" do
-    frame_stage_1 = Bowling.Frame.new() |> Bowling.Frame.roll(3)
+    frame_stage_1 = Bowling.OpenFrame.new() |> Bowling.Frame.roll(3)
     assert Bowling.Frame.status(frame_stage_1) == :open
     frame_stage_2 = frame_stage_1 |> Bowling.Frame.roll(3)
     assert Bowling.Frame.status(frame_stage_2) == :open
@@ -258,7 +258,7 @@ defmodule FrameTest do
 
   test "status after rolling a spare" do
     frame =
-      Bowling.Frame.new()
+      Bowling.OpenFrame.new()
       |> Bowling.Frame.roll(4)
       |> Bowling.Frame.roll(6)
 
@@ -267,7 +267,7 @@ defmodule FrameTest do
 
   test "spare status persists" do
     frame =
-      Bowling.Frame.new()
+      Bowling.OpenFrame.new()
       |> Bowling.Frame.roll(4)
       |> Bowling.Frame.roll(6)
       |> Bowling.Frame.roll(1)
@@ -277,7 +277,7 @@ defmodule FrameTest do
 
   test "status after rolling a strike" do
     frame =
-      Bowling.Frame.new()
+      Bowling.OpenFrame.new()
       |> Bowling.Frame.roll(10)
 
     assert Bowling.Frame.status(frame) == :strike
@@ -285,11 +285,55 @@ defmodule FrameTest do
 
   test "strike status persists" do
     frame =
-      Bowling.Frame.new()
+      Bowling.OpenFrame.new()
       |> Bowling.Frame.roll(10)
       |> Bowling.Frame.roll(4)
 
     assert Bowling.Frame.status(frame) == :strike
+  end
+
+  test "scoring an open frame after zero rolls" do
+
+    assert Bowling.OpenFrame.new() |> Bowling.Frame.score() == 0
+
+  end
+
+  test "scoring an open frame after one roll" do
+
+    roll = 3
+    assert (
+      Bowling.OpenFrame.new()
+      |> Bowling.Frame.roll(roll)
+      |> Bowling.Frame.score()
+    ) == roll
+
+  end
+
+  test "scoring an open frame after two rolls" do
+
+    roll1 = 3
+    roll2 = 4
+    assert (
+      Bowling.OpenFrame.new()
+      |> Bowling.Frame.roll(roll1)
+      |> Bowling.Frame.roll(roll2)
+      |> Bowling.Frame.score()
+    ) == roll1 + roll2
+
+  end
+
+  test "scoring an open frame after three rolls" do
+
+    roll1 = 3
+    roll2 = 4
+    assert (
+      Bowling.OpenFrame.new()
+      |> Bowling.Frame.roll(roll1)
+      |> Bowling.Frame.roll(roll2)
+      |> Bowling.Frame.roll(8)
+      |> Bowling.Frame.score()
+    ) == roll1 + roll2
+
   end
 
 end
