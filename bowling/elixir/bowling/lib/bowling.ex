@@ -25,27 +25,46 @@ defmodule Bowling do
     {:error, "Negative roll is invalid"}
   end
   def roll(game, roll) do
-    if game_over?(game) do
-      {:error, "Cannot roll after game is over"}
-    else
-      updated_frames =
-        Enum.map(game.frames, fn frame -> Bowling.Frame.roll(frame, roll) end)
+    with :ok <- assert_game_ongoing(game, "Cannot roll after game is over"),
+         {:ok, with_updated_scores} <- update_frames(game.frames, roll),
+         next_frames <- maybe_add_next_frame(with_updated_scores)
+    do
+      {:ok, %{game | frames: next_frames}}
+    end
+  end
 
-      error = updated_frames |> Enum.find(fn frame ->
-        case frame do
-          {:error, msg} -> {:error, msg}
-          _ -> nil
-        end
-      end)
+  defp update_frames(frames, roll) do
+    updated_frames =
+      Enum.map(frames, fn frame -> Bowling.Frame.roll(frame, roll) end)
 
-      cond do
-        not is_nil(error) -> error
-        length(updated_frames) < 10 and Enum.all?(updated_frames, &Bowling.Frame.finished?/1)
-          -> {:ok, %{game | frames: [Bowling.OpenFrame.new() | updated_frames]}}
-        true -> {:ok, %{game | frames: updated_frames}}
+    error = updated_frames |> Enum.find(fn frame ->
+      case frame do
+        {:error, msg} -> {:error, msg}
+        _ -> nil
       end
+    end)
+
+    cond do
+      is_nil(error) -> {:ok, updated_frames}
+      true -> error
     end
 
+  end
+
+  defp maybe_add_next_frame(frames) do
+    if length(frames) < 10 and Enum.all?(frames, &Bowling.Frame.finished?/1) do
+      [Bowling.OpenFrame.new() | frames]
+    else
+      frames
+    end
+  end
+
+  defp assert_game_ongoing(game, msg) do
+    if game_over?(game) do
+      {:error, msg}
+    else
+      :ok
+    end
   end
 
   defp game_over?(%__MODULE__{frames: frames}) do
