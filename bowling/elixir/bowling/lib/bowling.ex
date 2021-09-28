@@ -3,9 +3,15 @@ defmodule Bowling do
     Creates a new game of bowling that can be used to store the results of
     the game
   """
+  defstruct [
+    frames: []
+  ]
 
   @spec start() :: any
   def start do
+    %__MODULE__{
+      frames: [Bowling.OpenFrame.new()]
+    }
   end
 
   @doc """
@@ -16,6 +22,20 @@ defmodule Bowling do
 
   @spec roll(any, integer) :: {:ok, any} | {:error, String.t()}
   def roll(game, roll) do
+    updated_frames =
+      Enum.map(game.frames, fn frame -> Bowling.Frame.roll(frame, roll) end)
+      |> then(fn frames ->
+        if length(frames) < 10 and Enum.all?(frames, &Bowling.Frame.finished?/1) do
+          [Bowling.OpenFrame.new() | frames]
+        else
+          frames
+        end
+      end)
+    {:ok, %{ game | frames: updated_frames}}
+  end
+
+  defp game_over?(%__MODULE__{frames: frames}) do
+    length(frames) == 10 and Enum.all?(frames, &Bowling.Frame.fully_scored?/1)
   end
 
   @doc """
@@ -25,6 +45,11 @@ defmodule Bowling do
 
   @spec score(any) :: {:ok, integer} | {:error, String.t()}
   def score(game) do
+    score =
+      game.frames
+      |> Enum.map(&Bowling.Frame.score/1)
+      |> Enum.sum()
+    {:ok, score}
   end
 end
 
