@@ -39,7 +39,7 @@ defmodule Bowling do
 
     error = updated_frames |> Enum.find(fn frame ->
       case frame do
-        {:error, msg} -> {:error, msg}
+        e = {:error, _msg} -> e
         _ -> nil
       end
     end)
