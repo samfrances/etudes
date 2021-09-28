@@ -129,7 +129,6 @@ defmodule BowlingTest do
     assert Bowling.roll(game, 11) == {:error, "Pin count exceeds pins on the lane"}
   end
 
-  @tag :pending
   test "two bonus rolls after a strike in the last frame cannot score more than 10 points" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 5]
@@ -137,7 +136,6 @@ defmodule BowlingTest do
     assert Bowling.roll(game, 6) == {:error, "Pin count exceeds pins on the lane"}
   end
 
-  @tag :pending
   test "two bonus rolls after a strike in the last frame can score more than 10 points if one is a strike" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 6]
@@ -145,7 +143,6 @@ defmodule BowlingTest do
     assert Bowling.score(game) == {:ok, 26}
   end
 
-  @tag :pending
   test "the second bonus rolls after a strike in the last frame cannot be a strike if the first one is not a strike" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 6]
@@ -153,7 +150,6 @@ defmodule BowlingTest do
     assert Bowling.roll(game, 10) == {:error, "Pin count exceeds pins on the lane"}
   end
 
-  @tag :pending
   test "second bonus roll after a strike in the last frame cannot score more than 10 points" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10]

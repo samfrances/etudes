@@ -218,6 +218,12 @@ defimpl Bowling.Frame, for: Bowling.Strike do
     is_integer(frame.first_scoring_roll) and is_integer(frame.second_scoring_roll)
   end
 
+  def roll(_frame, n) when n > 10 do
+    {:error, "Pin count exceeds pins on the lane"}
+  end
+  def roll(%Bowling.Strike{first_scoring_roll: n}, m) when n < 10 and n + m > 10 do
+    {:error, "Pin count exceeds pins on the lane"}
+  end
   def roll(frame = %Bowling.Strike{first_scoring_roll: nil}, n) do
     %{ frame | first_scoring_roll: n }
   end
