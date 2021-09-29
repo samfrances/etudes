@@ -198,19 +198,11 @@ defimpl Bowling.Frame, for: Bowling.Spare do
 
   def roll(frame = %Bowling.Spare{}, n) do
     with {:ok, _pins} <- Bowling.Pins.new() |> Bowling.Pins.roll(n) do
-      update_score(frame, n)
+      %{frame | next_roll: n}
     end
   end
 
-  defp update_score(frame = %Bowling.Spare{next_roll: nil}, n) do
-    %{frame | next_roll: n}
-  end
-
-  defp update_score(frame, _n) do
-    frame
-  end
-
-  def score(%Bowling.Spare{next_roll: nil}) do
+  def score(frame = %Bowling.Spare{}) when not is_fully_scored?(frame) do
     nil
   end
 
@@ -248,8 +240,7 @@ defimpl Bowling.Frame, for: Bowling.Strike do
     %{frame | second_scoring_roll: n}
   end
 
-  def score(%Bowling.Strike{first_scoring_roll: n, second_scoring_roll: m})
-      when is_nil(n) or is_nil(m) do
+  def score(frame = %Bowling.Strike{}) when not is_fully_scored?(frame) do
     nil
   end
 
