@@ -40,13 +40,7 @@ defmodule Bowling do
   end
 
   defp find_frame_error(frames) do
-    frames
-    |> Enum.find(fn frame ->
-      case frame do
-        e = {:error, _msg} -> e
-        _ -> nil
-      end
-    end)
+    frames |> Enum.find(&match?({:error, _msg}, &1))
   end
 
   defp maybe_add_next_frame(frames) do
