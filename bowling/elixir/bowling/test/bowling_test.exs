@@ -43,7 +43,7 @@ defmodule BowlingTest do
     assert Bowling.score(game) == {:ok, 31}
   end
 
- test "a spare in the last frame gets a one roll bonus that is counted once" do
+  test "a spare in the last frame gets a one roll bonus that is counted once" do
     game = Bowling.start()
     rolls = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 3, 7]
     game = roll_reduce(game, rolls)
@@ -263,60 +263,45 @@ defmodule FrameTest do
   end
 
   test "scoring an open frame after zero rolls" do
-
     assert Bowling.OpenFrame.new() |> Bowling.Frame.score() == nil
-
   end
 
   test "scoring an open frame after one roll" do
-
     roll = 3
-    assert (
-      Bowling.OpenFrame.new()
-      |> Bowling.Frame.roll(roll)
-      |> Bowling.Frame.score()
-    ) == nil
 
+    assert Bowling.OpenFrame.new()
+           |> Bowling.Frame.roll(roll)
+           |> Bowling.Frame.score() == nil
   end
 
   test "scoring an open frame after two rolls" do
-
     roll1 = 3
     roll2 = 4
-    assert (
-      Bowling.OpenFrame.new()
-      |> Bowling.Frame.roll(roll1)
-      |> Bowling.Frame.roll(roll2)
-      |> Bowling.Frame.score()
-    ) == roll1 + roll2
 
+    assert Bowling.OpenFrame.new()
+           |> Bowling.Frame.roll(roll1)
+           |> Bowling.Frame.roll(roll2)
+           |> Bowling.Frame.score() == roll1 + roll2
   end
 
   test "scoring an open frame after three rolls" do
-
     roll1 = 3
     roll2 = 4
-    assert (
-      Bowling.OpenFrame.new()
-      |> Bowling.Frame.roll(roll1)
-      |> Bowling.Frame.roll(roll2)
-      |> Bowling.Frame.roll(8)
-      |> Bowling.Frame.score()
-    ) == roll1 + roll2
 
+    assert Bowling.OpenFrame.new()
+           |> Bowling.Frame.roll(roll1)
+           |> Bowling.Frame.roll(roll2)
+           |> Bowling.Frame.roll(8)
+           |> Bowling.Frame.score() == roll1 + roll2
   end
 
   test "an open frame's rolls may not exceed 10" do
-    assert (
-      Bowling.OpenFrame.new()
-      |> Bowling.Frame.roll(11)
-    ) == {:error, "Pin count exceeds pins on the lane"}
+    assert Bowling.OpenFrame.new()
+           |> Bowling.Frame.roll(11) == {:error, "Pin count exceeds pins on the lane"}
 
-    assert (
-      Bowling.OpenFrame.new()
-      |> Bowling.Frame.roll(8)
-      |> Bowling.Frame.roll(3)
-    ) == {:error, "Pin count exceeds pins on the lane"}
+    assert Bowling.OpenFrame.new()
+           |> Bowling.Frame.roll(8)
+           |> Bowling.Frame.roll(3) == {:error, "Pin count exceeds pins on the lane"}
   end
 
   test "scoring a new spare frame" do
@@ -325,21 +310,19 @@ defmodule FrameTest do
 
   test "scoring a spare after its extra roll" do
     roll = 5
-    assert (
-      Bowling.Spare.new()
-      |> Bowling.Frame.roll(roll)
-      |> Bowling.Frame.score()
-    ) == roll + 10
+
+    assert Bowling.Spare.new()
+           |> Bowling.Frame.roll(roll)
+           |> Bowling.Frame.score() == roll + 10
   end
 
   test "scoring a spare after its extra roll, plus further rolls" do
     roll = 5
-    assert (
-      Bowling.Spare.new()
-      |> Bowling.Frame.roll(roll)
-      |> Bowling.Frame.roll(2)
-      |> Bowling.Frame.score()
-    ) == roll + 10
+
+    assert Bowling.Spare.new()
+           |> Bowling.Frame.roll(roll)
+           |> Bowling.Frame.roll(2)
+           |> Bowling.Frame.score() == roll + 10
   end
 
   test "scoring a new strike frame" do
@@ -348,34 +331,31 @@ defmodule FrameTest do
 
   test "scoring a strike after its first extra roll" do
     roll = 5
-    assert (
-      Bowling.Strike.new()
-      |> Bowling.Frame.roll(roll)
-      |> Bowling.Frame.score()
-    ) == nil
+
+    assert Bowling.Strike.new()
+           |> Bowling.Frame.roll(roll)
+           |> Bowling.Frame.score() == nil
   end
 
   test "scoring a strike after its second extra roll" do
     roll1 = 5
     roll2 = 3
-    assert (
-      Bowling.Strike.new()
-      |> Bowling.Frame.roll(roll1)
-      |> Bowling.Frame.roll(roll2)
-      |> Bowling.Frame.score()
-    ) == roll1 + roll2 + 10
+
+    assert Bowling.Strike.new()
+           |> Bowling.Frame.roll(roll1)
+           |> Bowling.Frame.roll(roll2)
+           |> Bowling.Frame.score() == roll1 + roll2 + 10
   end
 
   test "scoring a spare after its extra rolls, plus more rolls" do
     roll1 = 4
     roll2 = 2
-    assert (
-      Bowling.Strike.new()
-      |> Bowling.Frame.roll(roll1)
-      |> Bowling.Frame.roll(roll2)
-      |> Bowling.Frame.roll(3)
-      |> Bowling.Frame.score()
-    ) == roll1 + roll2 + 10
+
+    assert Bowling.Strike.new()
+           |> Bowling.Frame.roll(roll1)
+           |> Bowling.Frame.roll(roll2)
+           |> Bowling.Frame.roll(3)
+           |> Bowling.Frame.score() == roll1 + roll2 + 10
   end
 
   test "strikes are always finished" do
@@ -419,5 +399,4 @@ defmodule FrameTest do
     two_extra_rolls = Bowling.Frame.roll(one_extra_roll, 3)
     assert Bowling.Frame.fully_scored?(two_extra_rolls)
   end
-
 end
