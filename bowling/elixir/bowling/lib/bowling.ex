@@ -34,21 +34,19 @@ defmodule Bowling do
   end
 
   defp update_frames(frames, roll) do
-    updated_frames =
-      Enum.map(frames, fn frame -> Bowling.Frame.roll(frame, roll) end)
+    updated_frames = Enum.map(frames, &Bowling.Frame.roll(&1, roll))
+    with nil <- find_frame_error(updated_frames) do
+      {:ok, updated_frames}
+    end
+  end
 
-    error = updated_frames |> Enum.find(fn frame ->
+  defp find_frame_error(frames) do
+    frames |> Enum.find(fn frame ->
       case frame do
         e = {:error, _msg} -> e
         _ -> nil
       end
     end)
-
-    cond do
-      is_nil(error) -> {:ok, updated_frames}
-      true -> error
-    end
-
   end
 
   defp maybe_add_next_frame(frames) do
