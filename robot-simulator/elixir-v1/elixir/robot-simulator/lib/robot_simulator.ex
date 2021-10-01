@@ -1,15 +1,14 @@
 defmodule RobotSimulator do
-
   defstruct direction: :north,
             position: {0, 0}
 
-  defguard is_direction(direction) when direction in [:north,:east,:south,:west]
+  defguard is_direction(direction) when direction in [:north, :east, :south, :west]
 
   defguard is_position(pos)
-    when is_tuple(pos)
-    and tuple_size(pos) == 2
-    and pos |> elem(0) |> is_integer()
-    and pos |> elem(1) |> is_integer()
+           when is_tuple(pos) and
+                  tuple_size(pos) == 2 and
+                  pos |> elem(0) |> is_integer() and
+                  pos |> elem(1) |> is_integer()
 
   @doc """
   Create a Robot Simulator given an initial direction and position.
@@ -18,12 +17,15 @@ defmodule RobotSimulator do
   """
   @spec create(direction :: atom, position :: {integer, integer}) :: any
   def create(direction \\ :north, position \\ {0, 0})
+
   def create(direction, _) when not is_direction(direction) do
     {:error, "invalid direction"}
   end
+
   def create(_, position) when not is_position(position) do
     {:error, "invalid position"}
   end
+
   def create(direction, position) do
     %__MODULE__{direction: direction, position: position}
   end
@@ -35,6 +37,7 @@ defmodule RobotSimulator do
   """
   @spec simulate(robot :: any, instructions :: String.t()) :: any
   def simulate(robot, ""), do: robot
+
   def simulate(robot, <<command_token::utf8, rest::bytes>>) do
     with {:ok, command_atom} <- interpret_command(command_token) do
       robot
@@ -46,42 +49,52 @@ defmodule RobotSimulator do
   defp interpret_command(?A), do: {:ok, :advance}
   defp interpret_command(?R), do: {:ok, :right}
   defp interpret_command(?L), do: {:ok, :left}
-  defp interpret_command(_), do: {:error , "invalid instruction"}
+  defp interpret_command(_), do: {:error, "invalid instruction"}
 
   defp execute_command(robot = %__MODULE__{direction: :north, position: {x, y}}, :advance) do
-    %{ robot | position: {x, y + 1} }
+    %{robot | position: {x, y + 1}}
   end
+
   defp execute_command(robot = %__MODULE__{direction: :south, position: {x, y}}, :advance) do
-    %{ robot | position: {x, y - 1} }
+    %{robot | position: {x, y - 1}}
   end
+
   defp execute_command(robot = %__MODULE__{direction: :east, position: {x, y}}, :advance) do
-    %{ robot | position: {x + 1, y} }
+    %{robot | position: {x + 1, y}}
   end
+
   defp execute_command(robot = %__MODULE__{direction: :west, position: {x, y}}, :advance) do
-    %{ robot | position: {x - 1, y} }
+    %{robot | position: {x - 1, y}}
   end
 
   defp execute_command(robot = %__MODULE__{direction: :north}, :left) do
     %{robot | direction: :west}
   end
+
   defp execute_command(robot = %__MODULE__{direction: :north}, :right) do
     %{robot | direction: :east}
   end
+
   defp execute_command(robot = %__MODULE__{direction: :east}, :right) do
     %{robot | direction: :south}
   end
+
   defp execute_command(robot = %__MODULE__{direction: :east}, :left) do
     %{robot | direction: :north}
   end
+
   defp execute_command(robot = %__MODULE__{direction: :south}, :right) do
     %{robot | direction: :west}
   end
+
   defp execute_command(robot = %__MODULE__{direction: :south}, :left) do
     %{robot | direction: :east}
   end
+
   defp execute_command(robot = %__MODULE__{direction: :west}, :right) do
     %{robot | direction: :north}
   end
+
   defp execute_command(robot = %__MODULE__{direction: :west}, :left) do
     %{robot | direction: :south}
   end
