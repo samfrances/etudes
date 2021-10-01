@@ -38,64 +38,66 @@ defmodule RobotSimulator do
   @spec simulate(robot :: any, instructions :: String.t()) :: any
   def simulate(robot, ""), do: robot
 
-  def simulate(robot, <<command_token::utf8, rest::bytes>>) do
-    with {:ok, command_atom} <- interpret_command(command_token) do
-      robot
-      |> execute_command(command_atom)
-      |> simulate(rest)
+  def simulate(robot, command_string) do
+    with true <- Regex.match?(~r/^[ARL]*$/, command_string) do
+      command_string
+      |> String.codepoints()
+      |> Enum.map(&interpret_command/1)
+      |> Enum.reduce(robot, &execute_command/2)
+    else
+      false -> {:error, "invalid instruction"}
     end
   end
 
-  defp interpret_command(?A), do: {:ok, :advance}
-  defp interpret_command(?R), do: {:ok, :right}
-  defp interpret_command(?L), do: {:ok, :left}
-  defp interpret_command(_), do: {:error, "invalid instruction"}
+  defp interpret_command("A"), do: :advance
+  defp interpret_command("R"), do: :right
+  defp interpret_command("L"), do: :left
 
-  defp execute_command(robot = %__MODULE__{direction: :north, position: {x, y}}, :advance) do
+  defp execute_command(:advance, robot = %__MODULE__{direction: :north, position: {x, y}}) do
     %{robot | position: {x, y + 1}}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :south, position: {x, y}}, :advance) do
+  defp execute_command(:advance, robot = %__MODULE__{direction: :south, position: {x, y}}) do
     %{robot | position: {x, y - 1}}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :east, position: {x, y}}, :advance) do
+  defp execute_command(:advance, robot = %__MODULE__{direction: :east, position: {x, y}}) do
     %{robot | position: {x + 1, y}}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :west, position: {x, y}}, :advance) do
+  defp execute_command(:advance, robot = %__MODULE__{direction: :west, position: {x, y}}) do
     %{robot | position: {x - 1, y}}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :north}, :left) do
+  defp execute_command(:left, robot = %__MODULE__{direction: :north}) do
     %{robot | direction: :west}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :north}, :right) do
+  defp execute_command(:right, robot = %__MODULE__{direction: :north}) do
     %{robot | direction: :east}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :east}, :right) do
+  defp execute_command(:right, robot = %__MODULE__{direction: :east}) do
     %{robot | direction: :south}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :east}, :left) do
+  defp execute_command(:left, robot = %__MODULE__{direction: :east}) do
     %{robot | direction: :north}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :south}, :right) do
+  defp execute_command(:right, robot = %__MODULE__{direction: :south}) do
     %{robot | direction: :west}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :south}, :left) do
+  defp execute_command(:left, robot = %__MODULE__{direction: :south}) do
     %{robot | direction: :east}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :west}, :right) do
+  defp execute_command(:right, robot = %__MODULE__{direction: :west}) do
     %{robot | direction: :north}
   end
 
-  defp execute_command(robot = %__MODULE__{direction: :west}, :left) do
+  defp execute_command(:left, robot = %__MODULE__{direction: :west}) do
     %{robot | direction: :south}
   end
 
